@@ -56,14 +56,14 @@ function Cube() {
   ctx.fillStyle = "#ffaa00";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "bold italic 260px Scheherazade New";
+  ctx.font = "bold italic 280px Scheherazade New";
   ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
 
   // Line 2 — Gold with gold glow
   ctx.shadowColor = "#cc3300";
   ctx.shadowBlur = 25;
   ctx.fillStyle = "#FFffff";
-  ctx.font = "bold italic 150px Scheherazade New";
+  ctx.font = "bold italic 160px Scheherazade New";
   ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
   const texture = new THREE.CanvasTexture(canvas);
