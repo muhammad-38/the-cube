@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { gsap } from "gsap";
 
 function Cube() {
   const mountRef = useRef(null);
@@ -7,190 +8,172 @@ function Cube() {
   useEffect(() => {
     const currentMount = mountRef.current;
 
-    // setup scene camera renderer
     const scene = new THREE.Scene();
+
+    // -------- BACKGROUND --------
+    const bgTexture = new THREE.TextureLoader().load("/the-cube/B01.jpg");
+    bgTexture.colorSpace = THREE.SRGBColorSpace;
+    scene.background = bgTexture;
+
     const camera = new THREE.PerspectiveCamera(
       75,
       currentMount.clientWidth / currentMount.clientHeight,
       0.1,
       1000
     );
-    camera.position.z = 4.8;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     currentMount.appendChild(renderer.domElement);
 
-    // load background image
+    camera.position.z = 5;
+
     const loader = new THREE.TextureLoader();
-    const bgTex = loader.load("/the-cube/B01.jpg");
-    scene.background = bgTex;
+    const createFace = (img) => {
+      const geo = new THREE.PlaneGeometry(1.3, 1.3);
+      const texture = loader.load(img);
+      const mat = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+      });
+      return new THREE.Mesh(geo, mat);
+    };
 
-    // i used the same texture for all 6 sides for now
-    const faceTex = loader.load("/the-cube/F01.jpg");
-    const faceMat = new THREE.MeshBasicMaterial({
-      map: faceTex,
-      side: THREE.DoubleSide,
-    });
+  const createMessageMesh = () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const ctx = canvas.getContext("2d");
 
+  ctx.fillStyle = "rgba(0,0,0,0)";
+  ctx.clearRect(0, 0, 1024, 1024);
+
+  // Line 1 — Teal with teal glow
+  ctx.shadowColor = "#cc3300";
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = "#ffaa00";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold italic 280px Scheherazade New";
+  ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
+
+  // Line 2 — Gold with gold glow
+  ctx.shadowColor = "#cc3300";
+  ctx.shadowBlur = 25;
+  ctx.fillStyle = "#FFffff";
+  ctx.font = "bold italic 160px Scheherazade New";
+  ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const geo = new THREE.PlaneGeometry(1.3, 1.3);
+  const mat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+
+  return new THREE.Mesh(geo, mat);
+};
+    
+
+    const faces = [];
     const faceSize = 1.3;
     const half = faceSize / 2;
 
-    // make each face as a plane and position it
-    // front face
-    const boxFront = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxFront.position.z = half;
+    const face1 = createFace("/the-cube/F01.jpg");
+    face1.position.z = half;
 
-    // back face
-    const boxBack = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxBack.position.z = -half;
+    const face2 = createFace("/the-cube/F01.jpg");
+    face2.position.z = -half;
 
-    // left face - rotate 90 deg so it faces the side
-    const boxLeft = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxLeft.position.x = -half;
-    boxLeft.rotation.y = Math.PI / 2;
+    const face3 = createFace("/the-cube/F01.jpg");
+    face3.position.x = -half;
+    face3.rotation.y = Math.PI / 2;
 
-    // right face
-    const boxRight = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxRight.position.x = half;
-    boxRight.rotation.y = Math.PI / 2;
+    const face4 = createFace("/the-cube/F01.jpg");
+    face4.position.x = half;
+    face4.rotation.y = Math.PI / 2;
 
-    // top face
-    const boxTop = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxTop.position.y = half;
-    boxTop.rotation.x = Math.PI / 2;
+    const face5 = createFace("/the-cube/F01.jpg");
+    face5.position.y = half;
+    face5.rotation.x = Math.PI / 2;
 
-    // bottom face
-    const boxBottom = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), faceMat);
-    boxBottom.position.y = -half;
-    boxBottom.rotation.x = Math.PI / 2;
+    const face6 = createFace("/the-cube/F01.jpg");
+    face6.position.y = -half;
+    face6.rotation.x = Math.PI / 2;
 
-    // group all faces so i can rotate the whole cube together
+    faces.push(face1, face2, face3, face4, face5, face6);
+
+    const msgMesh = createMessageMesh();
+    msgMesh.material.opacity = 0;
+    scene.add(msgMesh);
+
     const cubeGroup = new THREE.Group();
-    cubeGroup.add(boxFront, boxBack, boxLeft, boxRight, boxTop, boxBottom);
+    faces.forEach((f) => cubeGroup.add(f));
     scene.add(cubeGroup);
 
-    // targets for lerp - where each face should move when cube opens/closes
-    // when closed all targets are just the starting positions
-    const targets = {
-      front:  { z: half },
-      back:   { z: -half },
-      left:   { x: -half },
-      right:  { x: half },
-      top:    { y: half },
-      bottom: { y: -half },
-      opacity: 0,
-    };
-
-    // eid text using canvas
-    // drew arabic text on a canvas then used it as a texture
-    const msgCanvas = document.createElement("canvas");
-    msgCanvas.width = 1024;
-    msgCanvas.height = 1024;
-    const ctx = msgCanvas.getContext("2d");
-
-    // first line - eid mubarak in arabic
-    ctx.fillStyle = "#ffaa00";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.shadowColor = "#cc3300";
-    ctx.shadowBlur = 25;
-    ctx.font = "bold italic 280px Scheherazade New";
-    ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
-
-    // second line - kull aam wa antum bikhair
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold italic 160px Scheherazade New";
-    ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
-
-    const msgTex = new THREE.CanvasTexture(msgCanvas);
-    const msgMat = new THREE.MeshBasicMaterial({
-      map: msgTex,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-    const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), msgMat);
-    textPlane.material.opacity = 0;
-    scene.add(textPlane);
-
-    console.log("scene ready");
-
-    // click to open/close the cube
     let isOpen = false;
+
+    function openCube() {
+      gsap.to(face1.position, { z: 2.5, duration: 0.6 });
+      gsap.to(face2.position, { z: -2.5, duration: 0.6 });
+      gsap.to(face3.position, { x: -2.5, duration: 0.6 });
+      gsap.to(face4.position, { x: 2.5, duration: 0.6 });
+      gsap.to(face5.position, { y: 2.5, duration: 0.6 });
+      gsap.to(face6.position, { y: -2.5, duration: 0.6 });
+      gsap.to(msgMesh.material, { opacity: 1, duration: 0.6 });
+    }
+
+    function closeCube() {
+      gsap.to(face1.position, { z: half, duration: 0.6 });
+      gsap.to(face2.position, { z: -half, duration: 0.6 });
+      gsap.to(face3.position, { x: -half, duration: 0.6 });
+      gsap.to(face4.position, { x: half, duration: 0.6 });
+      gsap.to(face5.position, { y: half, duration: 0.6 });
+      gsap.to(face6.position, { y: -half, duration: 0.6 });
+      gsap.to(msgMesh.material, { opacity: 0, duration: 0.4 });
+    }
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const onClick = (e) => {
-      // convert mouse position to normalized device coords
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    const onClick = (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects([boxFront, boxBack, boxLeft, boxRight, boxTop, boxBottom]);
+      const intersects = raycaster.intersectObjects(faces);
 
-      console.log("clicked, hits:", hits.length);
-
-      if (hits.length > 0) {
-        isOpen = !isOpen;
-
-        if (isOpen) {
-          // set targets to open positions
-          targets.front.z  =  2.5;
-          targets.back.z   = -2.5;
-          targets.left.x   = -2.5;
-          targets.right.x  =  2.5;
-          targets.top.y    =  2.5;
-          targets.bottom.y = -2.5;
-          targets.opacity  =  1;
+      if (intersects.length > 0) {
+        if (!isOpen) {
+          openCube();
         } else {
-          // reset targets back to original closed positions
-          targets.front.z  =  half;
-          targets.back.z   = -half;
-          targets.left.x   = -half;
-          targets.right.x  =  half;
-          targets.top.y    =  half;
-          targets.bottom.y = -half;
-          targets.opacity  =  0;
+          closeCube();
         }
+        isOpen = !isOpen;
       }
     };
 
     window.addEventListener("click", onClick);
 
-    // animate loop - lerp each face toward its target
-    // teacher showed us lerp in class, it smoothly moves between two values
     const animate = () => {
       requestAnimationFrame(animate);
-
-      // rotate the whole cube slowly
       cubeGroup.rotation.x += 0.01;
       cubeGroup.rotation.y += 0.01;
       cubeGroup.rotation.z += 0.01;
-
-      // lerp faces toward targets
-      // 0.07 is the speed - higher = faster
-      boxFront.position.z  = THREE.MathUtils.lerp(boxFront.position.z,  targets.front.z,  0.07);
-      boxBack.position.z   = THREE.MathUtils.lerp(boxBack.position.z,   targets.back.z,   0.07);
-      boxLeft.position.x   = THREE.MathUtils.lerp(boxLeft.position.x,   targets.left.x,   0.07);
-      boxRight.position.x  = THREE.MathUtils.lerp(boxRight.position.x,  targets.right.x,  0.07);
-      boxTop.position.y    = THREE.MathUtils.lerp(boxTop.position.y,    targets.top.y,    0.07);
-      boxBottom.position.y = THREE.MathUtils.lerp(boxBottom.position.y, targets.bottom.y, 0.07);
-
-      // fade the text in/out with lerp too
-      textPlane.material.opacity = THREE.MathUtils.lerp(textPlane.material.opacity, targets.opacity, 0.07);
-
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // resize handler so it doesnt look stretched
     const handleResize = () => {
-      const w = currentMount.clientWidth;
-      const h = currentMount.clientHeight;
-      renderer.setSize(w, h);
-      camera.aspect = w / h;
+      const width = currentMount.clientWidth;
+      const height = currentMount.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
 
@@ -203,12 +186,9 @@ function Cube() {
     };
   }, []);
 
-  return (
-    <div
-      ref={mountRef}
-      style={{ width: "100vw", height: "100vh" }}
-    />
-  );
+   return (
+  <div ref={mountRef} style={{ width: "100vw", height: "100vh", display: "block", margin: 0, padding: 0 }} />
+);
 }
 
 export default Cube;
