@@ -1,235 +1,188 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { gsap } from "gsap";
+import { Text } from "troika-three-text";
 
-function Cube() {
+export default function ThreeScene() {
   const mountRef = useRef(null);
+  const explodedRef = useRef(false);
+  const cubeGroupRef = useRef(null);
+  const facesRef = useRef([]);
+  const textGroupRef = useRef(null);
 
   useEffect(() => {
-    const currentMount = mountRef.current;
+    if (!mountRef.current) return;
+    const container = mountRef.current;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
 
     const scene = new THREE.Scene();
 
-    // background
-    const bgTexture = new THREE.TextureLoader().load("/the-cube/B01.jpg");
-    bgTexture.colorSpace = THREE.SRGBColorSpace;
-    scene.background = bgTexture;
+    // ===== Transparent canvas so background image shows through =====
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.z = 6;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      currentMount.clientWidth / currentMount.clientHeight,
-      0.1,
-      1000
-    );
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
-    currentMount.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
-    // tried z=5 first but 4.8 looked a bit better
-    camera.position.z = 4.8;
+    // ===== Lights =====
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // ===== Cube faces with images =====
+    const cubeGroup = new THREE.Group();
+    cubeGroupRef.current = cubeGroup;
+    const faceSize = 2.2;
+    const faces = [];
+    facesRef.current = faces;
+
+    // Replace with your own images for each cube face
+    const faceImages = [
+      "/F01.jpeg",
+      "/F01.jpeg",
+      "/F01.jpeg",
+      "/F01.jpeg",
+      "/F01.jpeg",
+      "/F01.jpeg",
+    ];
+
+    const positions = [
+      [0, 0, faceSize / 2],
+      [0, 0, -faceSize / 2],
+      [-faceSize / 2, 0, 0],
+      [faceSize / 2, 0, 0],
+      [0, faceSize / 2, 0],
+      [0, -faceSize / 2, 0],
+    ];
+    const rotations = [
+      [0, 0, 0],
+      [0, Math.PI, 0],
+      [0, -Math.PI / 2, 0],
+      [0, Math.PI / 2, 0],
+      [-Math.PI / 2, 0, 0],
+      [Math.PI / 2, 0, 0],
+    ];
 
     const loader = new THREE.TextureLoader();
 
-    const createFace = (img) => {
-      const geo = new THREE.PlaneGeometry(1.3, 1.3);
-      const texture = loader.load(img);
-      const mat = new THREE.MeshBasicMaterial({
+    for (let i = 0; i < 6; i++) {
+      const geom = new THREE.PlaneGeometry(faceSize, faceSize);
+      const texture = loader.load(faceImages[i]);
+      const mat = new THREE.MeshStandardMaterial({
         map: texture,
         side: THREE.DoubleSide,
       });
-      return new THREE.Mesh(geo, mat);
-    };
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set(...positions[i]);
+      mesh.rotation.set(...rotations[i]);
 
-    const createMessageMesh = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1024;
-      const ctx = canvas.getContext("2d");
+      const dir = mesh.position.clone().sub(new THREE.Vector3(0, 0, 0)).normalize();
+      const explodeOffset = dir.clone().multiplyScalar(1.5);
 
-      const texture = new THREE.CanvasTexture(canvas);
-      const geo = new THREE.PlaneGeometry(2, 2);
-      const mat = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        side: THREE.DoubleSide,
-      });
-      const mesh = new THREE.Mesh(geo, mat);
+      cubeGroup.add(mesh);
+      faces.push({ mesh, originalPos: mesh.position.clone(), explodeOffset });
+    }
 
-      // draw the text on canvas
-      const drawText = () => {
-        ctx.clearRect(0, 0, 1024, 1024);
-
-        // first line - eid mubarak
-        ctx.fillStyle = "#ffaa00";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.shadowColor = "#cc3300";
-        ctx.shadowBlur = 25;
-        ctx.font = "bold 340px Scheherazade New";
-        ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 300);
-
-        // second line
-        ctx.fillStyle = "#FFffff";
-        ctx.font = "bold 180px Scheherazade New";
-        ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 700);
-
-        texture.needsUpdate = true;
-      };
-
-      // draw once immediately
-      drawText();
-
-      // redraw after fonts are definitely ready
-      // fixes the text being cut off on first load
-      document.fonts.ready.then(() => {
-        setTimeout(() => {
-          drawText();
-        }, 200);
-      });
-
-      return mesh;
-    };
-
-    const faces = [];
-    const faceSize = 1.3;
-    const half = faceSize / 2;
-
-    const face1 = createFace("/the-cube/F01.jpg");
-    face1.position.z = half;
-
-    const face2 = createFace("/the-cube/F01.jpg");
-    face2.position.z = -half;
-
-    const face3 = createFace("/the-cube/F01.jpg");
-    face3.position.x = -half;
-    face3.rotation.y = Math.PI / 2;
-
-    const face4 = createFace("/the-cube/F01.jpg");
-    face4.position.x = half;
-    face4.rotation.y = Math.PI / 2;
-
-    const face5 = createFace("/the-cube/F01.jpg");
-    face5.position.y = half;
-    face5.rotation.x = Math.PI / 2;
-
-    const face6 = createFace("/the-cube/F01.jpg");
-    face6.position.y = -half;
-    face6.rotation.x = Math.PI / 2;
-
-    faces.push(face1, face2, face3, face4, face5, face6);
-
-    const msgMesh = createMessageMesh();
-    msgMesh.material.opacity = 0;
-    scene.add(msgMesh);
-
-    const cubeGroup = new THREE.Group();
-    faces.forEach((f) => cubeGroup.add(f));
     scene.add(cubeGroup);
 
-    console.log("cube loaded");
+    // ===== Arabic text =====
+    const textGroup = new THREE.Group();
+    textGroupRef.current = textGroup;
 
-    let isOpen = false;
+    const text1 = new Text();
+    text1.text = "عِيدٌ مُبَارَكٌ";
+    text1.fontSize = 0.4;
+    text1.color = 0xFFFFE0;
+    text1.anchorX = "center";
+    text1.anchorY = "middle";
+    text1.position.set(0, 0.2, 0);
+    text1.sync();
+    textGroup.add(text1);
 
-    // store target positions for lerp
-    const targets = {
-      face1: { z: half },
-      face2: { z: -half },
-      face3: { x: -half },
-      face4: { x: half },
-      face5: { y: half },
-      face6: { y: -half },
-      opacity: 0,
-    };
+    const text2 = new Text();
+    text2.text = "تَقَبَّلَ اللهُ مِنَّا وَمِنكُمْ صَالِحَ الأَعْمَالِ";
+    text2.fontSize = 0.17;
+    text2.color = 0xFFD700;
+    text2.anchorX = "center";
+    text2.anchorY = "middle";
+    text2.position.set(0, -0.2, 0);
+    text2.sync();
+    textGroup.add(text2);
 
-    function openCube() {
-      targets.face1.z = 2.5;
-      targets.face2.z = -2.5;
-      targets.face3.x = -2.5;
-      targets.face4.x = 2.5;
-      targets.face5.y = 2.5;
-      targets.face6.y = -2.5;
-      targets.opacity = 1;
-    }
+    scene.add(textGroup);
 
-    function closeCube() {
-      targets.face1.z = half;
-      targets.face2.z = -half;
-      targets.face3.x = -half;
-      targets.face4.x = half;
-      targets.face5.y = half;
-      targets.face6.y = -half;
-      targets.opacity = 0;
-    }
-
+    // ===== Raycaster for cube click =====
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     const onClick = (event) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(faces);
-
-      console.log("clicked");
-
+      const intersects = raycaster.intersectObjects(facesRef.current.map((f) => f.mesh));
       if (intersects.length > 0) {
-        if (!isOpen) {
-          openCube();
-        } else {
-          closeCube();
-        }
-        isOpen = !isOpen;
+        explodedRef.current = !explodedRef.current;
+
+        facesRef.current.forEach((f) => {
+          const target = explodedRef.current
+            ? f.originalPos.clone().add(f.explodeOffset)
+            : f.originalPos.clone();
+          gsap.to(f.mesh.position, {
+            x: target.x,
+            y: target.y,
+            z: target.z,
+            duration: 1,
+            ease: "power2.out",
+          });
+        });
       }
     };
-
     window.addEventListener("click", onClick);
 
-    // animate - using lerp to smoothly move faces to their targets
-    // lerp(current, target, speed) - teacher showed us this
-    const animate = () => {
-      requestAnimationFrame(animate);
+    // ===== Animate cube =====
+    let animationId;
+    const rotate = () => {
+      animationId = requestAnimationFrame(rotate);
       cubeGroup.rotation.x += 0.01;
       cubeGroup.rotation.y += 0.01;
-      cubeGroup.rotation.z += 0.01;
-
-      face1.position.z = THREE.MathUtils.lerp(face1.position.z, targets.face1.z, 0.07);
-      face2.position.z = THREE.MathUtils.lerp(face2.position.z, targets.face2.z, 0.07);
-      face3.position.x = THREE.MathUtils.lerp(face3.position.x, targets.face3.x, 0.07);
-      face4.position.x = THREE.MathUtils.lerp(face4.position.x, targets.face4.x, 0.07);
-      face5.position.y = THREE.MathUtils.lerp(face5.position.y, targets.face5.y, 0.07);
-      face6.position.y = THREE.MathUtils.lerp(face6.position.y, targets.face6.y, 0.07);
-
-      // fade text in and out
-      msgMesh.material.opacity = THREE.MathUtils.lerp(msgMesh.material.opacity, targets.opacity, 0.07);
-
       renderer.render(scene, camera);
     };
+    rotate();
 
-    animate();
-
+    // ===== Resize handling =====
     const handleResize = () => {
-      const width = currentMount.clientWidth;
-      const height = currentMount.clientHeight;
-      renderer.setSize(width, height);
-      camera.aspect = width / height;
+      camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
     };
-
     window.addEventListener("resize", handleResize);
 
+    // ===== Cleanup =====
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("click", onClick);
-      currentMount.removeChild(renderer.domElement);
+      if (animationId) cancelAnimationFrame(animationId);
+      if (container && renderer.domElement) container.removeChild(renderer.domElement);
+      renderer.dispose();
     };
   }, []);
 
+  // ===== Full-page background image via style =====
   return (
-    <div ref={mountRef} style={{ width: "100vw", height: "100vh", display: "block", margin: 0, padding: 0 }} />
+    <div
+      ref={mountRef}
+      className="w-full h-screen"
+      style={{
+        backgroundImage: "url('/B01.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    />
   );
 }
-
-export default Cube;
