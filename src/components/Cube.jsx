@@ -57,9 +57,8 @@ function Cube() {
       });
       const mesh = new THREE.Mesh(geo, mat);
 
-      // wait for font to load first then draw
-      // was getting cut off on first load because font wasnt ready yet
-      document.fonts.load('700 280px "Scheherazade New"').then(() => {
+      // draw the text on canvas
+      const drawText = () => {
         ctx.clearRect(0, 0, 1024, 1024);
 
         // first line - eid mubarak
@@ -76,8 +75,18 @@ function Cube() {
         ctx.font = "bold 160px Scheherazade New";
         ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
-        // tell three.js the texture changed so it updates
         texture.needsUpdate = true;
+      };
+
+      // draw once immediately
+      drawText();
+
+      // redraw after fonts are definitely ready
+      // fixes the text being cut off on first load
+      document.fonts.ready.then(() => {
+        setTimeout(() => {
+          drawText();
+        }, 200);
       });
 
       return mesh;
