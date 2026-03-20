@@ -50,17 +50,24 @@ function Cube() {
       ctx.fillStyle = "rgba(0,0,0,0)";
       ctx.clearRect(0, 0, 1024, 1024);
 
-      ctx.shadowColor = "#ff9900";
-      ctx.shadowBlur = 20;
-
-      ctx.fillStyle = "#216477";
-      ctx.font = "bold 300px Arial";
+      // Line 1 — Teal with teal glow
+      ctx.shadowColor = "#00bfa5";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#00FFD1";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("عيد مبارك", 512, 512);
+      ctx.font = "bold italic 280px Scheherazade New";
+      ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
+
+      // Line 2 — Gold with gold glow
+      ctx.shadowColor = "#ff9900";
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = "#FFD700";
+      ctx.font = "bold italic 160px Scheherazade New";
+      ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
       const texture = new THREE.CanvasTexture(canvas);
-      const geo = new THREE.PlaneGeometry(1.3, 1.3);
+      const geo = new THREE.PlaneGeometry(2, 2);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -129,12 +136,13 @@ function Cube() {
       gsap.to(msgMesh.material, { opacity: 0, duration: 0.4 });
     }
 
+    // -------- CLICK & TOUCH DETECTION --------
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const onClick = (event) => {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    const handleInteraction = (clientX, clientY) => {
+      mouse.x = (clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(faces);
@@ -149,7 +157,20 @@ function Cube() {
       }
     };
 
+    // 🖥️ Desktop
+    const onClick = (event) => {
+      handleInteraction(event.clientX, event.clientY);
+    };
+
+    // 📱 Mobile
+    const onTouch = (event) => {
+      event.preventDefault();
+      const touch = event.touches[0];
+      handleInteraction(touch.clientX, touch.clientY);
+    };
+
     window.addEventListener("click", onClick);
+    window.addEventListener("touchstart", onTouch, { passive: false });
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -174,13 +195,14 @@ function Cube() {
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("click", onClick);
+      window.removeEventListener("touchstart", onTouch);
       currentMount.removeChild(renderer.domElement);
     };
   }, []);
 
-   return (
-  <div ref={mountRef} style={{ width: "100vw", height: "100vh", display: "block", margin: 0, padding: 0 }} />
-);
+  return (
+    <div ref={mountRef} style={{ width: "100vw", height: "100vh", display: "block", margin: 0, padding: 0 }} />
+  );
 }
 
 export default Cube;
