@@ -32,7 +32,7 @@ function Cube() {
 
     const loader = new THREE.TextureLoader();
     const createFace = (img) => {
-      const geo = new THREE.PlaneGeometry(1.5, 1.5);
+      const geo = new THREE.PlaneGeometry(1.3, 1.3);
       const texture = loader.load(img);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
@@ -67,7 +67,7 @@ function Cube() {
   ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
   const texture = new THREE.CanvasTexture(canvas);
-  const geo = new THREE.PlaneGeometry(1.5, 1.5);
+  const geo = new THREE.PlaneGeometry(1.3, 1.3);
   const mat = new THREE.MeshBasicMaterial({
     map: texture,
     transparent: true,
@@ -80,7 +80,7 @@ function Cube() {
     
 
     const faces = [];
-    const faceSize = 1.5;
+    const faceSize = 1.3;
     const half = faceSize / 2;
 
     const face1 = createFace("/the-cube/F01.jpg");
