@@ -11,7 +11,7 @@ function Cube() {
     const scene = new THREE.Scene();
 
     // -------- BACKGROUND --------
-    const bgTexture = new THREE.TextureLoader().load("/B01.jpg");
+    const bgTexture = new THREE.TextureLoader().load("/the-cube/B01.jpg");
     bgTexture.colorSpace = THREE.SRGBColorSpace;
     scene.background = bgTexture;
 
@@ -75,25 +75,25 @@ function Cube() {
     const faceSize = 1.3;
     const half = faceSize / 2;
 
-    const face1 = createFace("/F01.jpg");
+    const face1 = createFace("/the-cube/F01.jpg");
     face1.position.z = half;
 
-    const face2 = createFace("/F01.jpg");
+    const face2 = createFace("/the-cube/F01.jpg");
     face2.position.z = -half;
 
-    const face3 = createFace("/F01.jpg");
+    const face3 = createFace("/the-cube/F01.jpg");
     face3.position.x = -half;
     face3.rotation.y = Math.PI / 2;
 
-    const face4 = createFace("/F01.jpg");
+    const face4 = createFace("/the-cube/F01.jpg");
     face4.position.x = half;
     face4.rotation.y = Math.PI / 2;
 
-    const face5 = createFace("/F01.jpg");
+    const face5 = createFace("/the-cube/F01.jpg");
     face5.position.y = half;
     face5.rotation.x = Math.PI / 2;
 
-    const face6 = createFace("/F01.jpg");
+    const face6 = createFace("/the-cube/F01.jpg");
     face6.position.y = -half;
     face6.rotation.x = Math.PI / 2;
 
