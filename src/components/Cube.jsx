@@ -51,18 +51,18 @@ function Cube() {
   ctx.clearRect(0, 0, 1024, 1024);
 
   // Line 1 — Teal with teal glow
-  ctx.shadowColor = "#00bfa5";
+  ctx.shadowColor = "#cc3300";
   ctx.shadowBlur = 25;
-  ctx.fillStyle = "#00FFD1";
+  ctx.fillStyle = "#ffaa00";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = "bold italic 280px Scheherazade New";
   ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
 
   // Line 2 — Gold with gold glow
-  ctx.shadowColor = "#ff9900";
+  ctx.shadowColor = "#cc3300";
   ctx.shadowBlur = 25;
-  ctx.fillStyle = "#FFD700";
+  ctx.fillStyle = "#FFffff";
   ctx.font = "bold italic 160px Scheherazade New";
   ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
