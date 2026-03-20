@@ -58,7 +58,7 @@ function Cube() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      ctx.font = "900 240px 'Scheherazade New', serif"; // 🔥 slightly reduced
+      ctx.font = "900 350px 'Scheherazade New', serif"; // 🔥 slightly reduced
       ctx.fillText("عِيدٌ مُبَارَكٌ", canvas.width / 2, 400);
 
       // Second line
@@ -66,7 +66,7 @@ function Cube() {
       ctx.shadowBlur = 15;
 
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "900 140px 'Scheherazade New', serif"; // 🔥 slightly reduced
+      ctx.font = "900 220px 'Scheherazade New', serif"; // 🔥 slightly reduced
       ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", canvas.width / 2, 750);
 
       const texture = new THREE.CanvasTexture(canvas);
