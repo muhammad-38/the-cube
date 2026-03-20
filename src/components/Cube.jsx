@@ -47,24 +47,6 @@ function Cube() {
       canvas.height = 1024;
       const ctx = canvas.getContext("2d");
 
-      ctx.clearRect(0, 0, 1024, 1024);
-
-      // first line - eid mubarak
-      ctx.shadowColor = "#cc3300";
-      ctx.shadowBlur = 25;
-      ctx.fillStyle = "#ffaa00";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold italic 280px Scheherazade New";
-      ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
-
-      // second line
-      ctx.shadowColor = "#cc3300";
-      ctx.shadowBlur = 25;
-      ctx.fillStyle = "#FFffff";
-      ctx.font = "bold italic 160px Scheherazade New";
-      ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
-
       const texture = new THREE.CanvasTexture(canvas);
       const geo = new THREE.PlaneGeometry(1.3, 1.3);
       const mat = new THREE.MeshBasicMaterial({
@@ -72,8 +54,32 @@ function Cube() {
         transparent: true,
         side: THREE.DoubleSide,
       });
+      const mesh = new THREE.Mesh(geo, mat);
 
-      return new THREE.Mesh(geo, mat);
+      // wait for font to load first then draw
+      // was getting cut off on first load because font wasnt ready yet
+      document.fonts.load('bold italic 280px "Scheherazade New"').then(() => {
+        ctx.clearRect(0, 0, 1024, 1024);
+
+        // first line - eid mubarak
+        ctx.fillStyle = "#ffaa00";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = "#cc3300";
+        ctx.shadowBlur = 25;
+        ctx.font = "bold italic 280px Scheherazade New";
+        ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
+
+        // second line
+        ctx.fillStyle = "#FFffff";
+        ctx.font = "bold italic 160px Scheherazade New";
+        ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
+
+        // tell three.js the texture changed so it updates
+        texture.needsUpdate = true;
+      });
+
+      return mesh;
     };
 
     const faces = [];
