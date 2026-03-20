@@ -67,7 +67,7 @@ function Cube() {
       ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 1024, 1300);
 
       const texture = new THREE.CanvasTexture(canvas);
-      const geo = new THREE.PlaneGeometry(2.5, 2.5);
+      const geo = new THREE.PlaneGeometry(3.5, 3.5);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
