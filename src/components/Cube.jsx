@@ -67,12 +67,12 @@ function Cube() {
         ctx.textBaseline = "middle";
         ctx.shadowColor = "#cc3300";
         ctx.shadowBlur = 25;
-        ctx.font = "bold 280px Scheherazade New";
+        ctx.font = "bold 200px Scheherazade New";
         ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
 
         // second line
         ctx.fillStyle = "#FFffff";
-        ctx.font = "bold 160px Scheherazade New";
+        ctx.font = "bold 120px Scheherazade New";
         ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
         texture.needsUpdate = true;
