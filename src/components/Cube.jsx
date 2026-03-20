@@ -10,7 +10,7 @@ function Cube() {
     const scene = new THREE.Scene();
 
     // setting up the background image
-    // I tried color first but image looks better
+    // i tried color first but image looks better
     const bgTexture = new THREE.TextureLoader().load("/the-cube/B01.jpg");
     bgTexture.colorSpace = THREE.SRGBColorSpace; // without this the image was looking washed out
     scene.background = bgTexture;
@@ -23,10 +23,10 @@ function Cube() {
       1000
     );
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.outputColorSpace = THREE.SRGBColorSpace; // fixes color issue
+    // basic renderer setup
+    const renderer = new THREE.WebGLRenderer();
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
     currentMount.appendChild(renderer.domElement);
 
     // camera is 5 units away from the cube
@@ -45,16 +45,16 @@ function Cube() {
     };
 
     // creating the eid message using canvas
-    // I learned that we can draw text on canvas and use it as texture
+    // i learned that we can draw text on canvas and use it as texture
     const createMessageMesh = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1024;
+      canvas.width = 800;
+      canvas.height = 800;
       const ctx = canvas.getContext("2d");
 
       // clear canvas first
       ctx.fillStyle = "rgba(0,0,0,0)";
-      ctx.clearRect(0, 0, 1024, 1024);
+      ctx.clearRect(0, 0, 800, 800);
 
       // first line - eid mubarak in arabic
       ctx.shadowColor = "#cc3300";
@@ -63,21 +63,20 @@ function Cube() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = "bold italic 280px Scheherazade New"; // arabic font
-      ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
+      ctx.fillText("عِيدٌ مُبَارَكٌ", 400, 270);
 
       // second line - smaller text below
       ctx.shadowColor = "#cc3300";
       ctx.shadowBlur = 25;
       ctx.fillStyle = "#FFffff"; // white color
       ctx.font = "bold italic 160px Scheherazade New";
-      ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
+      ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 400, 500);
 
       const texture = new THREE.CanvasTexture(canvas);
       const geo = new THREE.PlaneGeometry(1.3, 1.3);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
-        depthWrite: false,
         side: THREE.DoubleSide,
       });
 
@@ -131,8 +130,8 @@ function Cube() {
     scene.add(cubeGroup);
 
     // lerp = linear interpolation
-    // it smoothly moves from one position to another
     // formula: start + (end - start) * t
+    // it smoothly moves from one position to another
     let isOpen = false;
 
     // where each face starts (closed position)
@@ -178,33 +177,19 @@ function Cube() {
         face.position.lerp(destination, 0.05);
       });
 
-      // fade in or fade out the message using lerp
+      // fade in or fade out the message
+      // using lerp formula manually: current + (target - current) * speed
       const targetOpacity = isOpen ? 1 : 0;
-      msgMesh.material.opacity = THREE.MathUtils.lerp(
-        msgMesh.material.opacity,
-        targetOpacity,
-        0.05
-      );
+      const lerpSpeed = 0.05;
+      msgMesh.material.opacity += (targetOpacity - msgMesh.material.opacity) * lerpSpeed;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // handle window resize
-    const handleResize = () => {
-      const width = currentMount.clientWidth;
-      const height = currentMount.clientHeight;
-      renderer.setSize(width, height);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-    };
-
-    window.addEventListener("resize", handleResize);
-
     // cleanup when component unmounts
     return () => {
-      window.removeEventListener("resize", handleResize);
       window.removeEventListener("click", onClick);
       currentMount.removeChild(renderer.domElement);
     };
