@@ -49,7 +49,7 @@ function Cube() {
       const ctx = canvas.getContext("2d");
 
       const texture = new THREE.CanvasTexture(canvas);
-      const geo = new THREE.PlaneGeometry(3, 3);
+      const geo = new THREE.PlaneGeometry(2, 2);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
