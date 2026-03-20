@@ -31,6 +31,7 @@ function Cube() {
     camera.position.z = 4.8;
 
     const loader = new THREE.TextureLoader();
+
     const createFace = (img) => {
       const geo = new THREE.PlaneGeometry(1.3, 1.3);
       const texture = loader.load(img);
@@ -58,7 +59,7 @@ function Cube() {
 
       // wait for font to load first then draw
       // was getting cut off on first load because font wasnt ready yet
-      document.fonts.load('bold italic 280px "Scheherazade New"').then(() => {
+      document.fonts.load('700 280px "Scheherazade New"').then(() => {
         ctx.clearRect(0, 0, 1024, 1024);
 
         // first line - eid mubarak
@@ -67,12 +68,12 @@ function Cube() {
         ctx.textBaseline = "middle";
         ctx.shadowColor = "#cc3300";
         ctx.shadowBlur = 25;
-        ctx.font = "bold italic 280px Scheherazade New";
+        ctx.font = "bold 280px Scheherazade New";
         ctx.fillText("عِيدٌ مُبَارَكٌ", 512, 350);
 
         // second line
         ctx.fillStyle = "#FFffff";
-        ctx.font = "bold italic 160px Scheherazade New";
+        ctx.font = "bold 160px Scheherazade New";
         ctx.fillText("كُلُّ عَامٍ وَأَنْتُمْ بِخَيْرٍ", 512, 650);
 
         // tell three.js the texture changed so it updates
